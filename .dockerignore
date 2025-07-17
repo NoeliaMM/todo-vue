@@ -1,0 +1,8 @@
+.github
+node_modules
+dist
+.editorconfig
+.gitignore 
+.vscode
+.env.development
+.prettierrc
