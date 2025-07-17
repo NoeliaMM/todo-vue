@@ -1,0 +1,42 @@
+name: CD Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+
+env:
+ IMAGE_NAME: ghcr.io/noeliamm/todo-vue:${{ github.run_number }}-${{ github.attempt }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  cd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }} .
+          docker push ${{ env.IMAGE_NAME }}
+
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_APP_NAME }}
+          images: ${{ env.IMAGE_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+
+
